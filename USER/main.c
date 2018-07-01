@@ -60,10 +60,6 @@ void Tx_data_function(void);
 	SPI2_Init();					//初始化备用MCP3208
   #endif
 
-
-
-
-
 	MCP3208_N1_P[0] = 0.021701085;   MCP3208_N1_F[0] = -1.827192043;				//电压采集CH1 系数
 	MCP3208_N1_P[1] = 0.022019266;   MCP3208_N1_F[1] = -2.190679817;				//电压采集CH2 系数
 	MCP3208_N1_P[2] = 0.021699638;   MCP3208_N1_F[2] = -1.867435262;				//电压采集CH3 系数
@@ -150,72 +146,13 @@ void Tx_data_function(void);
 		MCP3208_N1_DATA_f[7] = MCP3208_N1_DATA[7] * MCP3208_N1_P[2] + MCP3208_N1_F[2];				//电压采集通道3
 
 		Tx_data_function();
-		
-
-//				printf("I%d Current Result is: %d\r\n", 1,  adcx[11]);
-//				printf("I%d Current Result is: %d\r\n", 2,  adcx[12]);
-//				printf("I%d Current Result is: %d\r\n", 3,  adcx[13]);
-//				printf("I%d Current Result is: %d\r\n", 4,  adcx[10]);
-//				printf("I%d Current Result is: %d\r\n", 5,  adcx[14]);
-//				printf("I%d Current Result is: %d\r\n", 6,  adcx[9]);
-//				printf("I%d Current Result is: %d\r\n", 7,  adcx[8]);
-//				printf("I%d Current Result is: %d\r\n", 8,  adcx[15]);
-//				printf("I%d Current Result is: %d\r\n", 9,  adcx[1]);
-//				printf("I%d Current Result is: %d\r\n", 10, adcx[0]);
-////			
-////		  	printf("I%d Current Result is: %f\r\n", 1,  temp[11]);
-////				printf("I%d Current Result is: %f\r\n", 2,  temp[12]);
-////				printf("I%d Current Result is: %f\r\n", 3,  temp[13]);
-////				printf("I%d Current Result is: %f\r\n", 4,  temp[10]);
-////				printf("I%d Current Result is: %f\r\n", 5,  temp[14]);
-////				printf("I%d Current Result is: %f\r\n", 6,  temp[9]);
-////				printf("I%d Current Result is: %f\r\n", 7,  temp[8]);
-////				printf("I%d Current Result is: %f\r\n", 8,  temp[15]);
-////				printf("I%d Current Result is: %f\r\n", 9,  temp[1]);
-////				printf("I%d Current Result is: %f\r\n", 10, temp[0]);
-//			
-//				printf("I%d Current Result is: %f\r\n", 1,  STM_ADC_DATA_f[11]);
-//				printf("I%d Current Result is: %f\r\n", 2,  STM_ADC_DATA_f[12]);
-//				printf("I%d Current Result is: %f\r\n", 3,  STM_ADC_DATA_f[13]);
-//				printf("I%d Current Result is: %f\r\n", 4,  STM_ADC_DATA_f[10]);
-//				printf("I%d Current Result is: %f\r\n", 5,  STM_ADC_DATA_f[14]);
-//				printf("I%d Current Result is: %f\r\n", 6,  STM_ADC_DATA_f[9]);
-//				printf("I%d Current Result is: %f\r\n", 7,  STM_ADC_DATA_f[8]);
-//				printf("I%d Current Result is: %f\r\n", 8,  STM_ADC_DATA_f[15]);
-//				printf("I%d Current Result is: %f\r\n", 9,  STM_ADC_DATA_f[1]);
-//				printf("I%d Current Result is: %f\r\n", 10, STM_ADC_DATA_f[0]);
-
-//		printf("V%d Voltage Result is: %d\r\n", 1, MCP3208_N1_DATA[5]);
-//		printf("V%d Voltage Result is: %d\r\n", 2, MCP3208_N1_DATA[6]);
-//		printf("V%d Voltage Result is: %d\r\n", 3, MCP3208_N1_DATA[7]);
-//		printf("V%d Voltage Result is: %d\r\n", 4, MCP3208_N1_DATA[4]);
-//		printf("V%d Voltage Result is: %d\r\n", 5, adcx[2]);
-//		printf("V%d Voltage Result is: %d\r\n", 6, adcx[3]);
-//		printf("V%d Voltage Result is: %d\r\n", 7, MCP3208_N1_DATA[0]);
-//		printf("V%d Voltage Result is: %d\r\n", 8, MCP3208_N1_DATA[2]);
-//		printf("V%d Voltage Result is: %d\r\n", 9, MCP3208_N1_DATA[1]);
-//		printf("V%d Voltage Result is: %d\r\n", 10, MCP3208_N1_DATA[3]);	
-
-/*
-				printf("V%d Voltage Result is: %f\r\n", 1, MCP3208_N1_DATA_f[5]);
-				printf("V%d Voltage Result is: %f\r\n", 2, MCP3208_N1_DATA_f[6]);
-				printf("V%d Voltage Result is: %f\r\n", 3, MCP3208_N1_DATA_f[7]);
-				printf("V%d Voltage Result is: %f\r\n", 4, MCP3208_N1_DATA_f[4]);
-				printf("V%d Voltage Result is: %f\r\n", 5, STM_ADC_DATA_f[2]);
-				printf("V%d Voltage Result is: %f\r\n", 6, STM_ADC_DATA_f[3]);
-				printf("V%d Voltage Result is: %f\r\n", 7, MCP3208_N1_DATA_f[0]);
-				printf("V%d Voltage Result is: %f\r\n", 8, MCP3208_N1_DATA_f[2]);
-				printf("V%d Voltage Result is: %f\r\n", 9, MCP3208_N1_DATA_f[1]);
-				printf("V%d Voltage Result is: %f\r\n", 10, MCP3208_N1_DATA_f[3]);	
-*/				
-
-				for( i = 0; i < 34; i++ )							//	输出数据
-				{
+	
+		for( i = 0; i < 34; i++ )							//	输出数据
+		{
 						printf("%c", Tx_data[i]);
-				}
+		}
 		
 		LED0=!LED0;		//翻转控制板LED
-		LED2=!LED2;		//翻转底板LED
 		delay_ms(10);
 		IWDG_Feed();				//	喂狗
 	}											    
