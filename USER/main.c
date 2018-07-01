@@ -20,7 +20,6 @@ u8 Sci_cmd_sta;		// 接收命令标志，= 0表示没有接收到命令帧头, = 1表示命令接收到帧
 									// = 2表示接收到二级帧头 CD， = 3表示命令接收到实际命令字符
 									// = E0 表示全关； = EF 表示全开； 
 
-//u16 MCP3208_N1_DATA[8];
 u16	time_cnt;
 float	STM_ADC_DATA_f[16];
 float	STM_ADC_P[16];
@@ -32,7 +31,6 @@ void Tx_data_function(void);
  int main(void)
  { 
 	u16 adcx[16], addata;
-//	float temp[16];
 	u8 i;
 	 
 	delay_init();	    	 //延时函数初始化	  
@@ -118,23 +116,35 @@ void Tx_data_function(void);
  
 
 
+
 void Sci_Cmd_function(void)				//处理串口命令
 {
-		 if( Sci_cmd_sta == 3 )
-		 {
-				 switch(Sci_cmd[2])
-				 {
-					 case 0xE0: GPIO_SetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);  GPIO_SetBits(GPIOB,GPIO_Pin_5);   break;
-					 case 0xEF:	GPIO_ResetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);GPIO_ResetBits(GPIOB,GPIO_Pin_5);	break;
-					 case	0xA0: GPIO_SetBits(GPIOC,GPIO_Pin_14);	  break;
-					 case	0xAF:	GPIO_ResetBits(GPIOC,GPIO_Pin_14);	break;
-					 case	0xB0:	GPIO_SetBits(GPIOC,GPIO_Pin_15);   	break;
-					 case	0xBF:	GPIO_ResetBits(GPIOC,GPIO_Pin_15); 	break;
-					 case	0xC0:	GPIO_SetBits(GPIOB,GPIO_Pin_5);	    break;
-					 case	0xCF:	GPIO_ResetBits(GPIOB,GPIO_Pin_5);   break;					 
-				 }
-			Sci_cmd_sta = 0;			//	处理完一次命令，准备开始下次接收
-		 }
+		char CMD_Val;
+		int i;
+	
+		if( Sci_cmd_buf[0] == 0xEB )
+				if( Sci_cmd_buf[1] == 'E' )
+							{
+								if(crc_function(Sci_cmd_buf, CMD_BUF_LEN) == Sci_cmd_buf[CMD_BUF_LEN-1]);
+										CMD_Val = Sci_cmd_buf[2];
+								
+								for( i = 0; i < CMD_BUF_LEN; i++ )			//处理一次命令后清空接收缓存区，等待下一次命令
+										Sci_cmd_buf[i] = 0x00;
+							}
+		 
+		switch(CMD_Val)
+		{
+				case 0xE0: GPIO_SetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);  GPIO_SetBits(GPIOB,GPIO_Pin_5);   break;
+				case 0xEF:	GPIO_ResetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);GPIO_ResetBits(GPIOB,GPIO_Pin_5);	break;
+				case	0xA0: GPIO_SetBits(GPIOC,GPIO_Pin_14);	  break;
+				case	0xAF:	GPIO_ResetBits(GPIOC,GPIO_Pin_14);	break;
+				case	0xB0:	GPIO_SetBits(GPIOC,GPIO_Pin_15);   	break;
+				case	0xBF:	GPIO_ResetBits(GPIOC,GPIO_Pin_15); 	break;
+				case	0xC0:	GPIO_SetBits(GPIOB,GPIO_Pin_5);	    break;
+				case	0xCF:	GPIO_ResetBits(GPIOB,GPIO_Pin_5);   break;	
+				default : break;
+		}
+
 }
 
 void Tx_data_function(void)
