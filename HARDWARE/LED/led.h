@@ -7,9 +7,10 @@
 // 控制板两个 LED ： LED0 --> PB10
 //									 LED1 --> PC12
 ////////////////////////////////////////////////////////////////////////////////// 
+
+void LED_Init(void);		// LED 初始化函数声明
+
 #define LED0 PBout(10)	// 控制板LED0
 #define LED1 PCout(12)	// 控制板LED1	
-
-void LED_RELAY_Init(void);//初始化
 		 				    
 #endif
