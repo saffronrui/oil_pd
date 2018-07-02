@@ -188,14 +188,14 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 // 2018.7.1 @ saffronui
 //*******************************
 
-char	crc_function(char *buf, int buf_len)			//CRC 计算函数
+char	crc_clac(char *buf, int buf_len)			//CRC 计算函数
 {
 		int i;
 		char CRC_Byte;
 		
 		CRC_Byte = buf[0];
 		
-		for( i = 1; i < CMD_BUF_LEN -1 ; i++ ){
+		for( i = 1; i < buf_len -1 ; i++ ){
 				CRC_Byte ^= buf[i];
 		}
 		

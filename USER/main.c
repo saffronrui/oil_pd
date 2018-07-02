@@ -125,7 +125,7 @@ void Sci_Cmd_function(void)				//处理串口命令
 		if( Sci_cmd_buf[0] == 0xEB )
 				if( Sci_cmd_buf[1] == 'E' )
 							{
-								if(crc_function(Sci_cmd_buf, CMD_BUF_LEN) == Sci_cmd_buf[CMD_BUF_LEN-1]);
+								if(crc_clac(Sci_cmd_buf, CMD_BUF_LEN - 1 ) == Sci_cmd_buf[CMD_BUF_LEN-1]);		// 计算 crc 验证码时候需要去掉最后一个字节，所以长度为 CMD_BUF_LEN -1
 										CMD_Val = Sci_cmd_buf[2];
 								
 								for( i = 0; i < CMD_BUF_LEN; i++ )			//处理一次命令后清空接收缓存区，等待下一次命令
