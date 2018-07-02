@@ -140,7 +140,7 @@ void uart_init(u32 bound){
 void USART1_IRQHandler(void)                	//串口1中断服务程序
 	{
 		u8 Res;
-		static cmd_count = 0;
+		static int cmd_count = 0;
 		//  u8 Sci_cmd_sta;					// 接收命令标志，= 0表示没有接收到命令帧头, = 1表示命令接收到帧头EB
 																		// = 2表示接收到二级帧头 CD， = 3表示命令接收到实际命令字符
 																		// = E0 表示全关； = EF 表示全开； = A0 表示继电器A关闭，AF表示继电器A导通
@@ -188,7 +188,7 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 // 2018.7.1 @ saffronui
 //*******************************
 
-char	crc_clac(char *buf, int buf_len)			//CRC 计算函数
+char	crc_calc(char *buf, int buf_len)			//CRC 计算函数
 {
 		int i;
 		char CRC_Byte;

@@ -16,7 +16,7 @@ extern char Sci_cmd_buf[CMD_BUF_LEN];
 
 //如果想串口中断接收，请不要注释以下宏定义
 void uart_init(u32 bound);
-char	crc_clac(char *buf, int buf_len);
+char	crc_calc(char *buf, int buf_len);
 #endif
 
 
