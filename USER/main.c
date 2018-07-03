@@ -13,6 +13,7 @@
 #include "spi.h"
 #include "adc.h"
 #include "iwdg.h"
+#include "timer.h"
 
 u8 Tx_data[34];
 u8 Sci_cmd[3];
@@ -26,6 +27,10 @@ float	STM_ADC_DATA_f[ADC_CH_NUM];
 float	STM_ADC_P[ADC_CH_NUM];
 float STM_ADC_F[ADC_CH_NUM];
 
+extern u8  TIM2CH1_CAPTURE_STA;		//输入捕获状态		    				
+extern u16	TIM2CH1_CAPTURE_VAL;	//输入捕获值
+
+
 char	Fault_sta = 0x00;
 
 void Sci_Cmd_function(void);
@@ -36,19 +41,26 @@ char Voltage_Current_Protection(void);
  { 
 	u16 adcx[ADC_CH_NUM], addata;
 	u8 i;
-	 
+	
+//	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);// 设置中断优先级分组2	 
+	
 	delay_init();	    	 //延时函数初始化	  
 
 	LED_Init();		 //初始化与LED、RELAY连接端口初始化
  	GPIO_SetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);  GPIO_SetBits(GPIOB,GPIO_Pin_5);
+	
 	uart_init(115200);	 //串口初始化为115200
 	Adc_Init();		  		 //ADC初始化	    	    
 	
-	SPI_ADC_Init();
-	#if	MCP3208_N2_ENABLE
-	SPI2_Init();					//初始化备用MCP3208
-  #endif
-
+	TIM1_PWM_Init(8999,0); 			  //不分频。PWM频率=72000/(8999+1)=8Khz, 产生测试pwm
+ //	TIM2_Cap_Init(0XFFFF,72-1);		//以1Mhz的频率计数 
+	
+	TIM2_Config();			// TIM2 定时中断设置，250ms 中断
+	TIM3_Counter_Config();		// TIM3计数器设置
+//	TIM4_Counter_Config();	// TIM4计数器设置
+	GPIO_Counter_Config();		// 	捕获端口设置
+	 
+	 
 	STM_ADC_P[0] 	= 0.001204172; STM_ADC_F[0]  = 0.001537505;						//电流采集CH1系数
 	STM_ADC_P[1] 	= 0.001206592; STM_ADC_F[1]  = 0.003148714;						//电流采集CH2系数
 	STM_ADC_P[2] 	= 0.001206067; STM_ADC_F[2]  = 0.002076778;						//电流采集CH3系数

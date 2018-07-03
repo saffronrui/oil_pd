@@ -97,45 +97,108 @@ void TIM2_Cap_Init(u16 arr,u16 psc)
 }
 
 
-u8  TIM2CH1_CAPTURE_STA=0;	//输入捕获状态		    				
-u16	TIM2CH1_CAPTURE_VAL;	//输入捕获值
- 
-//定时器5中断服务程序	 
+u16	Timer3_freq1 = 0;
+u16 Timer4_freq2 = 0;
+
+//定时器2中断服务程序	 
 void TIM2_IRQHandler(void)
 { 
+		u32 cap1 = 0;
+		u32 cap2 = 0;
+	
+		if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) 
+    {
+				TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
+				cap1 = (u32)TIM_GetCounter(TIM3); 
+//			cap2 = (u32)TIM_GetCounter(TIM4);
+				
+				Timer3_freq1 = cap1 / 0.25;
+				Timer4_freq2 = cap2 / 0.25;
 
- 	if((TIM2CH1_CAPTURE_STA&0X80)==0)//还未成功捕获	
-	{	  
-		if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET)
-		 
-		{	    
-			if(TIM2CH1_CAPTURE_STA&0X40)//已经捕获到高电平了
-			{
-				if((TIM2CH1_CAPTURE_STA&0X3F)==0X3F)//高电平太长了
-				{
-					TIM2CH1_CAPTURE_STA|=0X80;//标记成功捕获了一次
-					TIM2CH1_CAPTURE_VAL=0XFFFF;
-				}else TIM2CH1_CAPTURE_STA++;
-			}	 
+        TIM_SetCounter(TIM3,0); 	     	    					   
 		}
-	if (TIM_GetITStatus(TIM2, TIM_IT_CC1) != RESET)//捕获1发生捕获事件
-		{	
-			if(TIM2CH1_CAPTURE_STA&0X40)		//捕获到一个下降沿 		
-			{	  			
-				TIM2CH1_CAPTURE_STA|=0X80;		//标记成功捕获到一次上升沿
-				TIM2CH1_CAPTURE_VAL=TIM_GetCapture1(TIM2);
-		   		TIM_OC1PolarityConfig(TIM2,TIM_ICPolarity_Rising); //CC1P=0 设置为上升沿捕获
-			}else  								//还未开始,第一次捕获上升沿
-			{
-				TIM2CH1_CAPTURE_STA=0;			//清空
-				TIM2CH1_CAPTURE_VAL=0;
-	 			TIM_SetCounter(TIM2,0);
-				TIM2CH1_CAPTURE_STA|=0X40;		//标记捕获到了上升沿
-		   		TIM_OC1PolarityConfig(TIM2,TIM_ICPolarity_Falling);		//CC1P=1 设置为下降沿捕获
-			}		    
-		}			     	    					   
- 	}
  
     TIM_ClearITPendingBit(TIM2, TIM_IT_CC1|TIM_IT_Update); //清除中断标志位
  
 }
+
+void TIM2_Config(void)
+{
+		TIM_TimeBaseInitTypeDef   TIM2_TimeBaseStructure;
+		NVIC_InitTypeDef NVIC_InitStructure;  
+		
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2, ENABLE);
+		TIM_DeInit(TIM2);
+		
+		TIM2_TimeBaseStructure.TIM_Period =2499;
+		TIM2_TimeBaseStructure.TIM_Prescaler = (7200-1); 
+		TIM2_TimeBaseStructure.TIM_ClockDivision = 0x0;
+		
+		TIM2_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
+		TIM_TimeBaseInit(TIM2, &TIM2_TimeBaseStructure); // Time base configuration
+		TIM_ClearFlag(TIM2,TIM_FLAG_Update);
+		TIM_ITConfig(TIM2,TIM_IT_Update,ENABLE ); 
+		TIM_Cmd(TIM2, ENABLE); 
+
+		NVIC_InitStructure.NVIC_IRQChannel = TIM2_IRQn;
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+		
+		NVIC_Init(&NVIC_InitStructure);                
+}
+
+/********************************************************************************
+* Function Name  : TIM3_Counter_Config
+* Description    : 定时器3计数器模式设置
+* Input          : None
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void TIM3_Counter_Config()
+{   
+		TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+	
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+	
+		TIM_TimeBaseStructure.TIM_Prescaler = 0x00; 
+		TIM_TimeBaseStructure.TIM_Period = 0xFFFF; 
+		TIM_TimeBaseStructure.TIM_ClockDivision = 0x0; 
+		TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up; 
+		TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);  // Time base configuration 
+
+		TIM_ETRClockMode2Config(TIM3, TIM_ExtTRGPSC_OFF, TIM_ExtTRGPolarity_NonInverted, 0);  
+	//TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);   
+		TIM_SetCounter(TIM3, 0);    
+		TIM_Cmd(TIM3, ENABLE); 
+}
+
+/********************************************************************************
+* Function Name  : GPIO_Counter_Config
+* Description    : The I/O configuration function，配置计数器端口
+* Input          : None
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void GPIO_Counter_Config(void)
+{   
+	GPIO_InitTypeDef GPIO_InitStructure; 
+	
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOE, ENABLE);
+	
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2; 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU; 
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; 
+	GPIO_Init(GPIOD, &GPIO_InitStructure); 
+
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0; 
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IPU; 
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz; 
+	GPIO_Init(GPIOE, &GPIO_InitStructure); 
+ }
+
+ 
+
+
