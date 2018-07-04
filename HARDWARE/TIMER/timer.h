@@ -8,7 +8,7 @@ extern u16 Timer4_freq2;
 void TIM1_PWM_Init(u16 arr,u16 psc);
 void TIM2_Cap_Init(u16 arr,u16 psc);
 void TIM2_Config(void);
-void TIM3_Counter_Config();
+void TIM3_Counter_Config(void);
 void GPIO_Counter_Config(void);
 
 #endif

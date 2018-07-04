@@ -22,13 +22,15 @@ u8 Sci_cmd_sta;		// 接收命令标志，= 0表示没有接收到命令帧头, = 1表示命令接收到帧
 									// = E0 表示全关； = EF 表示全开； 
 
 #define	ADC_CH_NUM	9		//ADC采样通道数定义
+#define	Tx_Len			20  //发送数组
+char		Tx_Buf[Tx_Len] = {0};
 
 float	STM_ADC_DATA_f[ADC_CH_NUM];
 float	STM_ADC_P[ADC_CH_NUM];
 float STM_ADC_F[ADC_CH_NUM];
 
-extern u8  TIM2CH1_CAPTURE_STA;		//输入捕获状态		    				
-extern u16	TIM2CH1_CAPTURE_VAL;	//输入捕获值
+extern u8		TIM2CH1_CAPTURE_STA;		//输入捕获状态		    				
+extern u16	TIM2CH1_CAPTURE_VAL;		//输入捕获值
 
 
 char	Fault_sta = 0x00;
@@ -45,21 +47,22 @@ char Voltage_Current_Protection(void);
 //	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);// 设置中断优先级分组2	 
 	
 	delay_init();	    	 //延时函数初始化	  
-
+	
+	uart_init(9600);	 //串口初始化为115200
+	
 	LED_Init();		 //初始化与LED、RELAY连接端口初始化
- 	GPIO_SetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);  GPIO_SetBits(GPIOB,GPIO_Pin_5);
+
+//	Adc_Init();		  		 //ADC初始化	    	    
 	
-	uart_init(115200);	 //串口初始化为115200
-	Adc_Init();		  		 //ADC初始化	    	    
-	
-	TIM1_PWM_Init(8999,0); 			  //不分频。PWM频率=72000/(8999+1)=8Khz, 产生测试pwm
- //	TIM2_Cap_Init(0XFFFF,72-1);		//以1Mhz的频率计数 
+	TIM1_PWM_Init(899,1); 			  //不分频。PWM频率=72000/(8999+1)=8Khz, 产生测试pwm
+	TIM_SetCompare1(TIM1,70);
 	
 	TIM2_Config();			// TIM2 定时中断设置，250ms 中断
 	TIM3_Counter_Config();		// TIM3计数器设置
-//	TIM4_Counter_Config();	// TIM4计数器设置
+////	TIM4_Counter_Config();	// TIM4计数器设置
 	GPIO_Counter_Config();		// 	捕获端口设置
 	 
+	 Adc_Init();		  		 //ADC初始化, 初始化时将 ADC 放到最后
 	 
 	STM_ADC_P[0] 	= 0.001204172; STM_ADC_F[0]  = 0.001537505;						//电流采集CH1系数
 	STM_ADC_P[1] 	= 0.001206592; STM_ADC_F[1]  = 0.003148714;						//电流采集CH2系数
@@ -82,9 +85,11 @@ char Voltage_Current_Protection(void);
 	 while(1)
 	{
 		Sci_Cmd_function();				//处理串口命令
-		
+		TIM_SetCompare1(TIM1,70);
 		// ADC 采样
 		adcx[0]=Get_Adc_Average(ADC_Channel_0,10);					//电流采样
+						printf("%c", adcx[0] >> 8);
+				printf("%c", adcx[0]);
 		adcx[1]=Get_Adc_Average(ADC_Channel_1,10);					//24电压采样
 		adcx[2]=Get_Adc_Average(ADC_Channel_2,10);					//12电压采样
 		adcx[3]=Get_Adc_Average(ADC_Channel_3,10);					//温度1采样
@@ -110,13 +115,10 @@ char Voltage_Current_Protection(void);
 	
 		Tx_data_function();
 	
-		for( i = 0; i < 34; i++ )							//	输出数据
-		{
-						printf("%c", Tx_data[i]);
-		}
 		
 //		LED0=!LED0;		//翻转控制板LED
-		delay_ms(10);
+//		LED1=!LED1;		//翻转控制板LED
+		delay_ms(200);
 		IWDG_Feed();				//	喂狗
 	}											    
 }	
@@ -160,8 +162,8 @@ void Sci_Cmd_function(void)				//处理串口命令
 		 
 		switch(CMD_Val)
 		{
-				case 0xE0: GPIO_SetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);  GPIO_SetBits(GPIOB,GPIO_Pin_5);   break;
-				case 0xEF:	GPIO_ResetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);GPIO_ResetBits(GPIOB,GPIO_Pin_5);	break;
+				case	0xE0: GPIO_SetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);  GPIO_SetBits(GPIOB,GPIO_Pin_5);   break;
+				case	0xEF:	GPIO_ResetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);GPIO_ResetBits(GPIOB,GPIO_Pin_5);	break;
 				case	0xA0: GPIO_SetBits(GPIOC,GPIO_Pin_14);	  break;
 				case	0xAF:	GPIO_ResetBits(GPIOC,GPIO_Pin_14);	break;
 				case	0xB0:	GPIO_SetBits(GPIOC,GPIO_Pin_15);   	break;
@@ -207,6 +209,8 @@ void Tx_data_function(void)
 		}
 		Tx_data[33] = CRC_Byte;
 }
+
+
 
 
 

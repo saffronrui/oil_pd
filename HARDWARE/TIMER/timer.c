@@ -109,13 +109,20 @@ void TIM2_IRQHandler(void)
 		if (TIM_GetITStatus(TIM2, TIM_IT_Update) != RESET) 
     {
 				TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
-				cap1 = (u32)TIM_GetCounter(TIM3); 
+				cap1 = (u16)TIM_GetCounter(TIM3); 
 //			cap2 = (u32)TIM_GetCounter(TIM4);
 				
 				Timer3_freq1 = cap1 / 0.25;
 				Timer4_freq2 = cap2 / 0.25;
-
-        TIM_SetCounter(TIM3,0); 	     	    					   
+	
+				printf("%c", Timer3_freq1 >> 8);
+				printf("%c", Timer3_freq1 );
+				
+//				printf("test program\n" );
+        
+				TIM_SetCounter(TIM3,0); 	 
+//				LED1=!LED1;
+//				LED0=!LED0;			
 		}
  
     TIM_ClearITPendingBit(TIM2, TIM_IT_CC1|TIM_IT_Update); //清除中断标志位
