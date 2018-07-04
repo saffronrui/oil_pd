@@ -112,17 +112,13 @@ void TIM2_IRQHandler(void)
 				cap1 = (u16)TIM_GetCounter(TIM3); 
 //			cap2 = (u32)TIM_GetCounter(TIM4);
 				
-				Timer3_freq1 = cap1 / 0.25;
-				Timer4_freq2 = cap2 / 0.25;
+				Timer3_freq1 = cap1 / 0.2489;					// 0.2489 未校正参数，标准值为 0.25，可根据实际情况适当调整
+				Timer4_freq2 = cap2 / 0.2489;
 	
-//				printf("%c", Timer3_freq1 >> 8);
-//				printf("%c", Timer3_freq1 );
-				
-//				printf("test program\n" );
+				printf("%c", Timer3_freq1 >> 8);
+				printf("%c", Timer3_freq1 );
         
-				TIM_SetCounter(TIM3,0); 	 
-//				LED1=!LED1;
-//				LED0=!LED0;			
+				TIM_SetCounter(TIM3,0); 	 	
 		}
  
     TIM_ClearITPendingBit(TIM2, TIM_IT_CC1|TIM_IT_Update); //清除中断标志位

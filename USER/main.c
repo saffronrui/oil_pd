@@ -14,6 +14,8 @@
 #include "adc.h"
 #include "iwdg.h"
 #include "timer.h"
+#include "24cxx.h" 
+#include "myiic.h"
 
 u8 Tx_data[34];
 u8 Sci_cmd[3];
@@ -32,6 +34,7 @@ float STM_ADC_F[ADC_CH_NUM];
 extern u8		TIM2CH1_CAPTURE_STA;		//输入捕获状态		    				
 extern u16	TIM2CH1_CAPTURE_VAL;		//输入捕获值
 
+const u8 TEXT_Buffer[]={"liuruirui  at24c02"};
 
 char	Fault_sta = 0x00;
 
@@ -43,6 +46,7 @@ char Voltage_Current_Protection(void);
  { 
 	u16 adcx[ADC_CH_NUM], addata;
 	u8 i;
+	char	datatemp[20];
 	
 //	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);// 设置中断优先级分组2	 
 	
@@ -54,7 +58,11 @@ char Voltage_Current_Protection(void);
 
 //	Adc_Init();		  		 //ADC初始化	    	    
 	
-	TIM1_PWM_Init(899,1); 			  //不分频。PWM频率=72000/(8999+1)=8Khz, 产生测试pwm
+	AT24CXX_Init();			//IIC初始化 
+//	AT24CXX_Write(0,(u8*)TEXT_Buffer,sizeof(TEXT_Buffer));
+	 
+	TIM1_PWM_Init(899,99); 			  //不分频。PWM频率=72000/(8999+1)=8Khz, 产生测试pwm
+																// 频率测量范围 800~9000
 	TIM_SetCompare1(TIM1,70);
 	
 	TIM2_Config();			// TIM2 定时中断设置，250ms 中断
@@ -86,6 +94,10 @@ char Voltage_Current_Protection(void);
 	{
 		Sci_Cmd_function();				//处理串口命令
 		TIM_SetCompare1(TIM1,70);
+		
+//		AT24CXX_Read(0,datatemp,20);					// 24C02 eeprom 读功能测试
+//		printf("%s", datatemp);
+		
 		// ADC 采样
 		adcx[0]=Get_Adc_Average(ADC_Channel_4,10);					//电流采样
 		adcx[1]=Get_Adc_Average(ADC_Channel_10,10);					//24电压采样
@@ -97,10 +109,10 @@ char Voltage_Current_Protection(void);
 		adcx[7]=Get_Adc_Average(ADC_Channel_2,10);					//备用电压采样1  0-10V
 		adcx[8]=Get_Adc_Average(ADC_Channel_3,10);					//备用电压采样2  0-10V
 
-		for( i = 0; i < 9; i++ ){
-				printf("%c", adcx[i] >> 8);
-				printf("%c", adcx[i]);
-		}
+//		for( i = 0; i < 9; i++ ){
+//				printf("%c", adcx[i] >> 8);
+//				printf("%c", adcx[i]);
+//		}
 		
 		// ADC 计算拟合数据
 		STM_ADC_DATA_f[0] =  adcx[0]  * STM_ADC_P[8] + STM_ADC_F[8] ;					//电流采样通道10
