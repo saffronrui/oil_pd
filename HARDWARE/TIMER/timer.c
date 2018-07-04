@@ -115,8 +115,8 @@ void TIM2_IRQHandler(void)
 				Timer3_freq1 = cap1 / 0.25;
 				Timer4_freq2 = cap2 / 0.25;
 	
-				printf("%c", Timer3_freq1 >> 8);
-				printf("%c", Timer3_freq1 );
+//				printf("%c", Timer3_freq1 >> 8);
+//				printf("%c", Timer3_freq1 );
 				
 //				printf("test program\n" );
         

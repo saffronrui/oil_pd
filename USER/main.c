@@ -62,7 +62,7 @@ char Voltage_Current_Protection(void);
 ////	TIM4_Counter_Config();	// TIM4计数器设置
 	GPIO_Counter_Config();		// 	捕获端口设置
 	 
-	 Adc_Init();		  		 //ADC初始化, 初始化时将 ADC 放到最后
+	Adc_Init();		  		 //ADC初始化, 初始化时将 ADC 放到最后
 	 
 	STM_ADC_P[0] 	= 0.001204172; STM_ADC_F[0]  = 0.001537505;						//电流采集CH1系数
 	STM_ADC_P[1] 	= 0.001206592; STM_ADC_F[1]  = 0.003148714;						//电流采集CH2系数
@@ -87,18 +87,21 @@ char Voltage_Current_Protection(void);
 		Sci_Cmd_function();				//处理串口命令
 		TIM_SetCompare1(TIM1,70);
 		// ADC 采样
-		adcx[0]=Get_Adc_Average(ADC_Channel_0,10);					//电流采样
-						printf("%c", adcx[0] >> 8);
-				printf("%c", adcx[0]);
-		adcx[1]=Get_Adc_Average(ADC_Channel_1,10);					//24电压采样
-		adcx[2]=Get_Adc_Average(ADC_Channel_2,10);					//12电压采样
-		adcx[3]=Get_Adc_Average(ADC_Channel_3,10);					//温度1采样
-		adcx[4]=Get_Adc_Average(ADC_Channel_4,10);					//温度2采样
-		adcx[5]=Get_Adc_Average(ADC_Channel_5,10);					//温度3采样
-		adcx[6]=Get_Adc_Average(ADC_Channel_6,10);					//温度4采样
-		adcx[7]=Get_Adc_Average(ADC_Channel_7,10);					//备用电压采样1  0-10V
-		adcx[8]=Get_Adc_Average(ADC_Channel_8,10);					//备用电压采样2  0-10V
+		adcx[0]=Get_Adc_Average(ADC_Channel_4,10);					//电流采样
+		adcx[1]=Get_Adc_Average(ADC_Channel_10,10);					//24电压采样
+		adcx[2]=Get_Adc_Average(ADC_Channel_11,10);					//12电压采样
+		adcx[3]=Get_Adc_Average(ADC_Channel_0,10);					//温度1采样
+		adcx[4]=Get_Adc_Average(ADC_Channel_1,10);					//温度2采样
+		adcx[5]=Get_Adc_Average(ADC_Channel_12,10);					//温度3采样
+		adcx[6]=Get_Adc_Average(ADC_Channel_13,10);					//温度4采样
+		adcx[7]=Get_Adc_Average(ADC_Channel_2,10);					//备用电压采样1  0-10V
+		adcx[8]=Get_Adc_Average(ADC_Channel_3,10);					//备用电压采样2  0-10V
 
+		for( i = 0; i < 9; i++ ){
+				printf("%c", adcx[i] >> 8);
+				printf("%c", adcx[i]);
+		}
+		
 		// ADC 计算拟合数据
 		STM_ADC_DATA_f[0] =  adcx[0]  * STM_ADC_P[8] + STM_ADC_F[8] ;					//电流采样通道10
 		STM_ADC_DATA_f[1] =  adcx[1]  * STM_ADC_P[8] + STM_ADC_F[8];					//电流采样通道9
