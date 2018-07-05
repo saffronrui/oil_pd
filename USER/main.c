@@ -3,6 +3,7 @@
 // 处理器 stm32f103vet
 // github: https://github.com/saffronrui/oil_pd
 // 使用 github 时需要注意： 系统文件夹中忽略了 OBJ 文件夹，所以 clone 项目到本地之后需要手动建立空的 OBJ 文件夹
+// 双通道频率采集功能，采集范围 800 ~ 9000 rpm
 // 2018.7.1 20:00 @liuruirui
 //***************************************************************//
 
@@ -16,6 +17,7 @@
 #include "timer.h"
 #include "24cxx.h" 
 #include "myiic.h"
+#include "dma.h"
 
 u8 Tx_data[34];
 u8 Sci_cmd[3];
@@ -25,7 +27,8 @@ u8 Sci_cmd_sta;		// 接收命令标志，= 0表示没有接收到命令帧头, = 1表示命令接收到帧
 
 #define	ADC_CH_NUM	9		//ADC采样通道数定义
 #define	Tx_Len			20  //发送数组
-char		Tx_Buf[Tx_Len] = {0};
+char		Tx_Buf[Tx_Len] = {0xeb,'P', 0x14,0x88,0x88,0x88,0x88,0x88,0x88,0x88,
+													0x99,0x98,0x89,0x78,0x65,0xec,0xd3,0xb1,0x00,0x00};
 
 float	STM_ADC_DATA_f[ADC_CH_NUM];
 float	STM_ADC_P[ADC_CH_NUM];
@@ -44,15 +47,16 @@ char Voltage_Current_Protection(void);
 
  int main(void)
  { 
-	u16 adcx[ADC_CH_NUM], addata;
+	u16 adcx[ADC_CH_NUM];
 	u8 i;
-	char	datatemp[20];
 	
 //	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);// 设置中断优先级分组2	 
 	
 	delay_init();	    	 //延时函数初始化	  
 	
 	uart_init(9600);	 //串口初始化为115200
+	
+	MYDMA_Config(DMA1_Channel4,(u32)&USART1->DR,(u32)Tx_Buf,Tx_Len);//DMA1通道4,外设为串口1,存储器为Tx_buf,长度为 sizeof(tx_buf)
 	
 	LED_Init();		 //初始化与LED、RELAY连接端口初始化
 
@@ -82,7 +86,7 @@ char Voltage_Current_Protection(void);
 	STM_ADC_P[7] 	= 0.001205058; STM_ADC_F[7]  = 0.004016861;						//电流采集CH8系数
 	STM_ADC_P[8] 	= 0.001208981; STM_ADC_F[8]  = 0.003190616;						//电流采集CH9系数
 
-	 for(i = 0; i < 16; i++)
+	 for(i = 0; i < ADC_CH_NUM; i++)
 	{
 		adcx[i] = 0;
 		STM_ADC_DATA_f[i] = 0.0;
@@ -93,7 +97,6 @@ char Voltage_Current_Protection(void);
 	 while(1)
 	{
 		Sci_Cmd_function();				//处理串口命令
-		TIM_SetCompare1(TIM1,70);
 		
 //		AT24CXX_Read(0,datatemp,20);					// 24C02 eeprom 读功能测试
 //		printf("%s", datatemp);
@@ -128,12 +131,9 @@ char Voltage_Current_Protection(void);
 		Fault_sta = Voltage_Current_Protection();			//设备保护并返回相应故障码
 	
 	
-		Tx_data_function();
-	
+		Tx_data_function();	
 		
-//		LED0=!LED0;		//翻转控制板LED
-//		LED1=!LED1;		//翻转控制板LED
-		delay_ms(200);
+		delay_ms(10);
 		IWDG_Feed();				//	喂狗
 	}											    
 }	
@@ -192,37 +192,19 @@ void Sci_Cmd_function(void)				//处理串口命令
 
 void Tx_data_function(void)
 {
-		u16 temp;
-		u8	i;
-		char	CRC_Byte;
-	
-		Tx_data[0]  = 0xEB;
-		Tx_data[1]  = 0xCD;
-		Tx_data[2]  = 0x20;
-		Tx_data[3]  = 'T';
-		
-	  Tx_data[4]  = STM_ADC_DATA_f[1];						// 电流1数据
-		Tx_data[5]  = STM_ADC_DATA_f[2];						// 电流1数据
-		Tx_data[6]  = STM_ADC_DATA_f[3];						// 电流1数据
-		Tx_data[7]  = STM_ADC_DATA_f[0];						// 电流1数据
-		Tx_data[8]  = STM_ADC_DATA_f[4];						// 电流1数据
-				
-		temp = 0;
-		temp = STM_ADC_DATA_f[2] * 10;
-		Tx_data[21] = temp;
-		Tx_data[22] = temp >> 8;
+		char static Byte_Count = 0;
 
-		temp = 0;
-		temp = STM_ADC_DATA_f[3] * 10;
-		Tx_data[23] = temp;
-		Tx_data[24] = temp >> 8;
+		Tx_Buf[0] = 0xEB;
+		Tx_Buf[1] = 'P';
+		Tx_Buf[2] = Tx_Len;
+	
+		Tx_Buf[12] = Timer3_freq1 >> 8;
+		Tx_Buf[13] = Timer3_freq1;
+		Tx_Buf[14] = Timer4_freq2 >> 8;
+		Tx_Buf[15] = Timer4_freq2;	
 		
-		CRC_Byte = 0x00;
-		for( i = 0; i< 33; i++ )
-		{
-				CRC_Byte ^= Tx_data[i];
-		}
-		Tx_data[33] = CRC_Byte;
+		Tx_Buf[18] = Byte_Count++;													//	添加计数码，用于设备重启故障排查
+		Tx_Buf[19] = crc_calc(Tx_Buf, Tx_Len - 1);					//	CRC验证码计算
 }
 
 

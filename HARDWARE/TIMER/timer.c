@@ -2,6 +2,7 @@
 #include "led.h"
 #include "usart.h"
 #include "sys.h"
+#include "dma.h"
 //////////////////////////////////////////////////////////////////////////////////	 
 
 ////////////////////////////////////////////////////////////////////////////////// 	  
@@ -115,8 +116,10 @@ void TIM2_IRQHandler(void)
 				Timer3_freq1 = cap1 / 0.2489;					// 0.2489 未校正参数，标准值为 0.25，可根据实际情况适当调整
 				Timer4_freq2 = cap2 / 0.2489;
 	
-				printf("%c", Timer3_freq1 >> 8);
-				printf("%c", Timer3_freq1 );
+				MYDMA_Tx_Start();											// 使能DMA传输数据，传输频率 4Hz
+
+//				printf("%c", Timer3_freq1 >> 8);
+//				printf("%c", Timer3_freq1 );
         
 				TIM_SetCounter(TIM3,0); 	 	
 		}
