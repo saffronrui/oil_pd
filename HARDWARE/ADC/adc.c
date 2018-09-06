@@ -35,15 +35,20 @@ void  Adc_Init(void)
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;		//模拟输入引脚AIN3输入引脚配置
 	GPIO_Init(GPIOA, &GPIO_InitStructure);	
 
-	//PB0 作为模拟通道输入引脚                         
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;		//模拟输入引脚AIN8输入引脚配置
-	GPIO_Init(GPIOB, &GPIO_InitStructure);	
-	
-	//PB1 作为模拟通道输入引脚                         
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;		//模拟输入引脚AIN9输入引脚配置
-	GPIO_Init(GPIOB, &GPIO_InitStructure);	
+	//PA7 作为模拟通道输入引脚                         
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;		//模拟输入引脚AIN7输入引脚配置
+	GPIO_Init(GPIOA, &GPIO_InitStructure);	
+
+//	//PB0 作为模拟通道输入引脚                         
+//	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0;
+//	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;		//模拟输入引脚AIN8输入引脚配置
+//	GPIO_Init(GPIOB, &GPIO_InitStructure);	
+//	
+//	//PB1 作为模拟通道输入引脚                         
+//	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+//	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;		//模拟输入引脚AIN9输入引脚配置
+//	GPIO_Init(GPIOB, &GPIO_InitStructure);	
 
 	//PC0-PC5 作为模拟通道输入引脚                         
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1 | GPIO_Pin_2 | GPIO_Pin_3 | GPIO_Pin_4 | GPIO_Pin_5 ;
@@ -103,7 +108,8 @@ u16 Get_Adc_Average(u8 ch,u8 times)
 	for(t=0;t<times;t++)
 	{
 		temp_val+=Get_Adc(ch);
-		delay_ms(5);
+//		delay_ms(5);
+		delay_us(10);
 	}
 	return temp_val/times;
 } 	 

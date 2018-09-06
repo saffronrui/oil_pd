@@ -7,6 +7,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////// 	  
 
+
 //PWM输出初始化
 //arr：自动重装值
 //psc：时钟预分频数
@@ -111,17 +112,25 @@ void TIM2_IRQHandler(void)
     {
 				TIM_ClearITPendingBit(TIM2, TIM_IT_Update);
 				cap1 = (u16)TIM_GetCounter(TIM3); 
-//			cap2 = (u32)TIM_GetCounter(TIM4);
+				cap2 = (u16)TIM_GetCounter(TIM4);
 				
 				Timer3_freq1 = cap1 / 0.2489;					// 0.2489 未校正参数，标准值为 0.25，可根据实际情况适当调整
 				Timer4_freq2 = cap2 / 0.2489;
 	
 				MYDMA_Tx_Start();											// 使能DMA传输数据，传输频率 4Hz
+				
+				Tx_Buf[Tx_Len - 2] += 1;							// 添加计数码，用于设备重启故障排查
 
 //				printf("%c", Timer3_freq1 >> 8);
 //				printf("%c", Timer3_freq1 );
-        
-				TIM_SetCounter(TIM3,0); 	 	
+//				printf("%c", Timer4_freq2 >> 8);
+//				printf("%c", Timer4_freq2 );
+
+				LED0 = !LED0;
+				LED1 = !LED1;
+			
+				TIM_SetCounter(TIM3,0); 
+				TIM_SetCounter(TIM4,0); 			
 		}
  
     TIM_ClearITPendingBit(TIM2, TIM_IT_CC1|TIM_IT_Update); //清除中断标志位
@@ -178,6 +187,32 @@ void TIM3_Counter_Config()
 	//TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);   
 		TIM_SetCounter(TIM3, 0);    
 		TIM_Cmd(TIM3, ENABLE); 
+}
+
+/********************************************************************************
+* Function Name  : TIM4_Counter_Config
+* Description    : 定时器4计数器模式设置
+* Input          : None
+* Output         : None
+* Return         : None
+*******************************************************************************/
+void TIM4_Counter_Config()
+{   
+		TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
+	
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
+	
+		TIM_TimeBaseStructure.TIM_Prescaler = 0x00; 
+		TIM_TimeBaseStructure.TIM_Period = 0xFFFF; 
+		TIM_TimeBaseStructure.TIM_ClockDivision = 0x0; 
+		TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up; 
+		TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);  // Time base configuration 
+
+		TIM_ETRClockMode2Config(TIM4, TIM_ExtTRGPSC_OFF, TIM_ExtTRGPolarity_NonInverted, 0);  
+	//TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);   
+		TIM_SetCounter(TIM4, 0);    
+		TIM_Cmd(TIM4, ENABLE); 
 }
 
 /********************************************************************************
