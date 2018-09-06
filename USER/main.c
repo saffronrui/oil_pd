@@ -26,6 +26,7 @@
 //***********  软件版本号管理，升级软件时务必更改 ********
 
 const u8 Program_Version[]={"***** V1.0.0--2018.9.5--By_LRR *****"};
+#define	version_addr	1024
 
 //***********  软件版本号管理，升级软件时务必更改 ********
 //********************************************************
@@ -54,7 +55,6 @@ char Voltage_Current_Protection(void);
  { 
 	u16 adcx[ADC_CH_NUM];
 	u8 i;
-	u8 datatemp[20];
 	
 //	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);// 设置中断优先级分组2	 
 	
@@ -67,7 +67,7 @@ char Voltage_Current_Protection(void);
 	LED_Init();		 //初始化与LED、RELAY连接端口初始化   
 	
 	AT24CXX_Init();			//IIC初始化 
-//	AT24CXX_Write(0,(u8*)TEXT_Buffer,sizeof(TEXT_Buffer));
+//	AT24CXX_Write(version_addr,(u8*)Program_Version,sizeof(Program_Version));
 	 
 	TIM1_PWM_Init(899,9); 			  //不分频。PWM频率=72000/(8999+1)=8Khz, 产生测试pwm
 																// 频率测量范围 800~9000
@@ -102,8 +102,7 @@ char Voltage_Current_Protection(void);
 	{
 		Sci_Cmd_function();				//处理串口命令
 		
-//		AT24CXX_Read(0,datatemp,20);					// 24C02 eeprom 读功能测试
-//		printf("%s\n", datatemp);
+
 		
 		// ADC 采样 9个通道采样计算耗时约 2ms
 		adcx[0]=Get_Adc_Average(ADC_Channel_7,10);					//电流采样									-->PA7
@@ -190,11 +189,12 @@ void Sci_Cmd_function(void)				//处理串口命令
 {
 		char CMD_Val;
 		int i;
+		u8 datatemp[40];
 	
 		if( Sci_cmd_buf[0] == 0xEB )
 				if( Sci_cmd_buf[1] == 'E' )
 							{
-								if(crc_calc(Sci_cmd_buf, CMD_BUF_LEN - 1 ) == Sci_cmd_buf[CMD_BUF_LEN-1]);		// 计算 crc 验证码时候需要去掉最后一个字节，所以长度为 CMD_BUF_LEN -1
+	//							if(crc_calc(Sci_cmd_buf, CMD_BUF_LEN - 1 ) == Sci_cmd_buf[CMD_BUF_LEN-1]);		// 计算 crc 验证码时候需要去掉最后一个字节，所以长度为 CMD_BUF_LEN -1
 										CMD_Val = Sci_cmd_buf[2];
 								
 								for( i = 0; i < CMD_BUF_LEN; i++ )			//处理一次命令后清空接收缓存区，等待下一次命令
@@ -212,7 +212,7 @@ void Sci_Cmd_function(void)				//处理串口命令
 				case	0xC0:	GPIO_SetBits(GPIOB,GPIO_Pin_5);	    break;
 				case	0xCF:	GPIO_ResetBits(GPIOB,GPIO_Pin_5);   break;	
 			
-				case	'V':		printf("%s\n", Program_Version);		break;				// 软件版本号码查询
+				case	'V':	AT24CXX_Read(version_addr,datatemp,20);	printf("%s\n", datatemp);		break;				// 软件版本号码查询
 				default : break;
 		}
 
