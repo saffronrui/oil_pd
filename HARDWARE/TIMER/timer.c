@@ -114,8 +114,8 @@ void TIM2_IRQHandler(void)
 				cap1 = (u16)TIM_GetCounter(TIM3); 
 				cap2 = (u16)TIM_GetCounter(TIM4);
 				
-				Timer3_freq1 = cap1 / 0.2489;					// 0.2489 未校正参数，标准值为 0.25，可根据实际情况适当调整
-				Timer4_freq2 = cap2 / 0.2489;
+				Timer3_freq1 = cap1;					
+				Timer4_freq2 = cap2;
 	
 				MYDMA_Tx_Start();											// 使能DMA传输数据，传输频率 4Hz
 				

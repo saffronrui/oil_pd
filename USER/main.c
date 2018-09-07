@@ -46,16 +46,36 @@ float STM_ADC_F[ADC_CH_NUM];
 const u8 TEXT_Buffer[]={"liuruirui---at24c02"};
 
 char	Fault_sta = 0x00;
- 
+
+typedef union	def_float
+{
+		char	fchar[4];
+		float ff;
+};
+
+
 void Sci_Cmd_function(void);
 void Tx_data_function(void);
 char Voltage_Current_Protection(void);
+//void Push_EE_float(u16 addr, union	def_float	my_float);
+////void Pop_EE_float(u16 addr, union def_float	*my_float	);
+
+//void Push_EE_float(u16 addr, union	def_float	my_float)
+//{
+//		AT24CXX_WriteOneByte(addr++, my_float.fchar[0]);
+//		AT24CXX_WriteOneByte(addr++, my_float.fchar[1]);
+//		AT24CXX_WriteOneByte(addr++, my_float.fchar[2]);
+//		AT24CXX_WriteOneByte(addr++, my_float.fchar[3]);
+//}
 
  int main(void)
  { 
 	u16 adcx[ADC_CH_NUM];
 	u8 i;
 	
+	 union def_float	float_type;
+	 union def_float	f1_type;
+	 
 //	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);// 设置中断优先级分组2	 
 	
 	delay_init();	    	 //延时函数初始化	  
@@ -69,7 +89,7 @@ char Voltage_Current_Protection(void);
 	AT24CXX_Init();			//IIC初始化 
 //	AT24CXX_Write(version_addr,(u8*)Program_Version,sizeof(Program_Version));
 	 
-	TIM1_PWM_Init(899,9); 			  //不分频。PWM频率=72000/(8999+1)=8Khz, 产生测试pwm
+	TIM1_PWM_Init(899,99); 			  //不分频。PWM频率=72000/(8999+1)=8Khz, 产生测试pwm
 																// 频率测量范围 800~9000
 	TIM_SetCompare1(TIM1,70);
 	
@@ -98,11 +118,23 @@ char Voltage_Current_Protection(void);
 	 
 	IWDG_Init(4,625);    //与分频数为64,重载值为625,溢出时间为1s
 	
-	 while(1)
+//	float_type.ff = 3.1415926;
+//	AT24CXX_WriteOneByte(0, float_type.fchar[0]);
+//	AT24CXX_WriteOneByte(1, float_type.fchar[1]);
+//	AT24CXX_WriteOneByte(2, float_type.fchar[2]);
+//	AT24CXX_WriteOneByte(3, float_type.fchar[3]);	
+	
+
+	 
+	while(1)
 	{
 		Sci_Cmd_function();				//处理串口命令
 		
-
+//		f1_type.fchar[0] = AT24CXX_ReadOneByte(0);
+//		f1_type.fchar[1] = AT24CXX_ReadOneByte(1);
+//		f1_type.fchar[2] = AT24CXX_ReadOneByte(2);
+//		f1_type.fchar[3] = AT24CXX_ReadOneByte(3);
+//		printf("%f", f1_type.ff);
 		
 		// ADC 采样 9个通道采样计算耗时约 2ms
 		adcx[0]=Get_Adc_Average(ADC_Channel_7,10);					//电流采样									-->PA7
@@ -120,10 +152,10 @@ char Voltage_Current_Protection(void);
 		USART_DMACmd(USART1,USART_DMAReq_Tx,DISABLE); 											// 调试模式下禁 DMA 输出，即只输出调试数据
 																																				// 不输出正常数据
 		
-		for( i = 3; i < 7; i++ ){
-				printf("%c", adcx[i] >> 8);
-				printf("%c", adcx[i]);
-		}	
+//		for( i = 3; i < 7; i++ ){
+//				printf("%c", adcx[1] >> 8);
+//				printf("%c", adcx[1]);
+//		}	
 
 //				printf("%c", adcx[1] >> 8);
 //				printf("%c", adcx[1]);
@@ -143,15 +175,15 @@ char Voltage_Current_Protection(void);
 //		STM_ADC_DATA_f[7] =  adcx[7]  * STM_ADC_P[8] + STM_ADC_F[8];					//电流采样通道9	
 //		STM_ADC_DATA_f[8] =  adcx[8]  * STM_ADC_P[8] + STM_ADC_F[8] ;					//电流采样通道10
 	
-		STM_ADC_DATA_f[0] =  1.51 * adcx[0]  * 3.3 * 10 / 4096;					//电流
-		STM_ADC_DATA_f[1] =  6.0 * adcx[1]  * 3.3 * 10 / 4096;					//12电压
-		STM_ADC_DATA_f[2] =  adcx[2]  * 3.3 * 10 / 4096;					//电流采样通道10
-		STM_ADC_DATA_f[3] =  adcx[3]  * 3.3 * 10 / 4096;					//电流采样通道9
-		STM_ADC_DATA_f[4] =  adcx[4]  * 3.3 * 10 / 4096 ;					//电流采样通道10
-		STM_ADC_DATA_f[5] =  adcx[5]  * 3.3 * 10 / 4096;					//电流采样通道9	
-		STM_ADC_DATA_f[6] =  adcx[6]  * 3.3 * 10 / 4096 ;					//电流采样通道10
-		STM_ADC_DATA_f[7] =  adcx[7]  * 3.3 * 10 / 4096;					//电流采样通道9	
-		STM_ADC_DATA_f[8] =  adcx[8]  * 3.3 * 10 / 4096 ;					//电流采样通道10
+		STM_ADC_DATA_f[0] =  1.51 * adcx[0]  * 3.3 * 10 / 4096;		//电流采样									-->PA7
+		STM_ADC_DATA_f[1] =  adcx[1]*0.048197;										//12电压采样								-->PC0
+		STM_ADC_DATA_f[2] =  adcx[2]  * 3.3 * 10 / 4096;					//24电压采样								-->PC1
+		STM_ADC_DATA_f[3] =  adcx[3]  * 3.3 * 10 / 4096;					//温度1采样									-->PC3
+		STM_ADC_DATA_f[4] =  adcx[4]  * 3.3 * 10 / 4096 ;					//温度2采样									-->PC2
+		STM_ADC_DATA_f[5] =  adcx[5]  * 3.3 * 10 / 4096;					//温度3采样									-->PA0
+		STM_ADC_DATA_f[6] =  adcx[6]  * 3.3 * 10 / 4096 ;					//温度4采样									-->PA1
+		STM_ADC_DATA_f[7] =  adcx[7]  * 3.3 * 10 / 4096;					//备用电压采样1  0-10V			-->PA2
+		STM_ADC_DATA_f[8] =  adcx[8]  * 3.3 * 10 / 4096 ;					//备用电压采样2  0-10V			-->PA3
 	
 		Fault_sta = Voltage_Current_Protection();			//设备保护并返回相应故障码
 	
@@ -202,7 +234,8 @@ void Sci_Cmd_function(void)				//处理串口命令
 							}
 		 
 		switch(CMD_Val)
-		{
+		{	
+				LED1 = !LED1;
 				case	0xE0: GPIO_SetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);  GPIO_SetBits(GPIOB,GPIO_Pin_5);   break;
 				case	0xEF:	GPIO_ResetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);GPIO_ResetBits(GPIOB,GPIO_Pin_5);	break;
 				case	0xA0: GPIO_SetBits(GPIOC,GPIO_Pin_14);	  break;
@@ -235,6 +268,9 @@ void Tx_data_function(void)
 		Tx_Buf[10] = STM_ADC_DATA_f[7];
 		Tx_Buf[11] = STM_ADC_DATA_f[8];
 		
+		Timer3_freq1 *= 4.0020;												//	转速系数调整，标准系数为 250ms 一次中断， *4，最好避免在中断函数内做运算
+		Timer4_freq2 *= 4.0020;												//	转速系数调整，标准系数为 250ms 一次中断， *4
+				
 		if(Timer3_freq1 < 50)													// 转速小于 50 rmp 不显示转速								
 				Timer3_freq1 = 0;
 		if(Timer4_freq2 < 50)
