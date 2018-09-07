@@ -10,7 +10,7 @@
 
 void LED_Init(void);		// LED 初始化函数声明
 
-#define LED0 PAout(8)	// 控制板LED0
-#define LED1 PDout(2)	// 控制板LED1	
+#define LED0 PBout(10)	// 控制板LED0
+#define LED1 PCout(12)	// 控制板LED1	
 		 				    
 #endif

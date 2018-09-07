@@ -18,12 +18,12 @@ void IIC_Init(void)
 {					     
 	GPIO_InitTypeDef GPIO_InitStructure;
 	//RCC->APB2ENR|=1<<4;//先使能外设IO PORTC时钟 
-	RCC_APB2PeriphClockCmd(	RCC_APB2Periph_GPIOC, ENABLE );	
+	RCC_APB2PeriphClockCmd(	RCC_APB2Periph_GPIOB, ENABLE );	
 	   
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_12|GPIO_Pin_11;
+	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13|GPIO_Pin_14;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP ;   //推挽输出
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(GPIOC, &GPIO_InitStructure);
+	GPIO_Init(GPIOB, &GPIO_InitStructure);
  
 	IIC_SCL=1;
 	IIC_SDA=1;

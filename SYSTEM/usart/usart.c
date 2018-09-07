@@ -5,6 +5,8 @@
 extern u8 Sci_cmd[3];
 extern u8 Sci_cmd_sta;		
 char	Sci_cmd_buf[CMD_BUF_LEN] = {0};
+
+char		Tx_Buf[Tx_Len] = {0};
 ////////////////////////////////////////////////////////////////////////////////// 	 
 //如果使用ucos,则包括下面的头文件即可.
 #if SYSTEM_SUPPORT_OS
@@ -151,26 +153,8 @@ void USART1_IRQHandler(void)                	//串口1中断服务程序
 #endif
 	if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)  //接收中断(接收到的数据必须是0x0d 0x0a结尾)
 		{
-		Res =USART_ReceiveData(USART1);	//读取接收到的数据
-	
-//    if(Res == 0xEB )										//接收到命令帧头，开始计数
-//		{
-//				Sci_cmd_sta = 0;
-//				Sci_cmd[Sci_cmd_sta] = Res;
-//				Sci_cmd_sta ++;
-//		}
-//		else	if( (Res == 0xCD)&&( Sci_cmd_sta == 1) )			//确定第二帧头
-//					{		
-//							 Sci_cmd[Sci_cmd_sta ] = Res;
-//							 Sci_cmd_sta ++;
-//					}
-//					else	if( Sci_cmd_sta == 2 )									//当第二帧头任然正确时接收命令字
-//								{
-//										Sci_cmd[Sci_cmd_sta] = Res;
-//										Sci_cmd_sta = 3;	
-//										LED1=!LED1;
-//								}
-//			
+			Res =USART_ReceiveData(USART1);						//读取接收到的数据
+			
 			if( (Res == 0xEB) || (cmd_count >= CMD_BUF_LEN))					// 判断帧头与接收数组溢出
 					cmd_count = 0;
 			Sci_cmd_buf[cmd_count++] = Res;
