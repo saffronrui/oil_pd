@@ -88,10 +88,15 @@ char Voltage_Current_Protection(void);
 	
 	AT24CXX_Init();			//IIC初始化 
 //	AT24CXX_Write(version_addr,(u8*)Program_Version,sizeof(Program_Version));
-	 
-	TIM1_PWM_Init(899,99); 			  //不分频。PWM频率=72000/(8999+1)=8Khz, 产生测试pwm
+
+//-------------------------------------------------------------------------------//	 
+// timer1 输出pwm用来测试频率采集，需要时去掉注释即可
+// 需要注意， PA8 输出测试 pwm，此端口与 mosfet 控制端口复用
+
+//	TIM1_PWM_Init(899,99); 			  //不分频。PWM频率=72000/(8999+1)=8Khz, 产生测试pwm
 																// 频率测量范围 800~9000
-	TIM_SetCompare1(TIM1,70);
+//	TIM_SetCompare1(TIM1,70);
+//-------------------------------------------------------------------------------//	
 	
 	TIM2_Config();			// TIM2 定时中断设置，250ms 中断
 	TIM3_Counter_Config();		// TIM3计数器设置
@@ -204,13 +209,18 @@ char Voltage_Current_Protection(void)
 				return 0xBB;
 		} 	
 		
-		if( (STM_ADC_DATA_f[1] > 26. ) || (STM_ADC_DATA_f[1] < 18.) ){			// 24V电源高压低压保护
+		if( (STM_ADC_DATA_f[2] > 26. ) || (STM_ADC_DATA_f[2] < 18.) ){			// 24V电源高压低压保护
 				//关闭所有moefet通道
 				return 0xCC;
 		}
 		
-		if( (STM_ADC_DATA_f[2] > 14. ) || (STM_ADC_DATA_f[1] < 11.) ){			// 12V电源高压低压保护
-				//关闭所有moefet通道
+		if( (STM_ADC_DATA_f[1] > 130 ) || (STM_ADC_DATA_f[1] < 105) ){			// 12V电源高压低压保护
+				 
+				 GPIO_ResetBits(GPIOA,GPIO_Pin_11);					  // mosfet1 turn-off
+				 GPIO_ResetBits(GPIOA,GPIO_Pin_8); 						// mosfet2 turn-off
+				 GPIO_ResetBits(GPIOE,GPIO_Pin_2);   					// mosfet3 turn-off
+				 GPIO_ResetBits(GPIOE,GPIO_Pin_3);   				  // mosfet4 turn-off
+			
 			return	0xEE;
 		}				
 		
@@ -226,6 +236,7 @@ void Sci_Cmd_function(void)				//处理串口命令
 		if( Sci_cmd_buf[0] == 0xEB )
 				if( Sci_cmd_buf[1] == 'E' )
 							{
+								LED1 = !LED1;
 	//							if(crc_calc(Sci_cmd_buf, CMD_BUF_LEN - 1 ) == Sci_cmd_buf[CMD_BUF_LEN-1]);		// 计算 crc 验证码时候需要去掉最后一个字节，所以长度为 CMD_BUF_LEN -1
 										CMD_Val = Sci_cmd_buf[2];
 								
@@ -235,15 +246,22 @@ void Sci_Cmd_function(void)				//处理串口命令
 		 
 		switch(CMD_Val)
 		{	
-				LED1 = !LED1;
-				case	0xE0: GPIO_SetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);  GPIO_SetBits(GPIOB,GPIO_Pin_5);   break;
-				case	0xEF:	GPIO_ResetBits(GPIOC,GPIO_Pin_14|GPIO_Pin_15);GPIO_ResetBits(GPIOB,GPIO_Pin_5);	break;
-				case	0xA0: GPIO_SetBits(GPIOC,GPIO_Pin_14);	  break;
-				case	0xAF:	GPIO_ResetBits(GPIOC,GPIO_Pin_14);	break;
-				case	0xB0:	GPIO_SetBits(GPIOC,GPIO_Pin_15);   	break;
-				case	0xBF:	GPIO_ResetBits(GPIOC,GPIO_Pin_15); 	break;
-				case	0xC0:	GPIO_SetBits(GPIOB,GPIO_Pin_5);	    break;
-				case	0xCF:	GPIO_ResetBits(GPIOB,GPIO_Pin_5);   break;	
+				case	0xE0: GPIO_SetBits(GPIOB,GPIO_Pin_4);      	break;				// 停车开关 1 动作
+				case	0xEA:	GPIO_ResetBits(GPIOB,GPIO_Pin_4);			break;				// 停车开关 1 复位
+				case	0xF0: GPIO_SetBits(GPIOB,GPIO_Pin_5);     	break;				// 停车开关 2 动作
+				case	0xFA:	GPIO_ResetBits(GPIOB,GPIO_Pin_5);			break;				// 停车开关 2 复位
+				
+				case	0xA0: GPIO_SetBits(GPIOA,GPIO_Pin_11);	  	break;				// mosfet1 turn-on
+				case	0xAA:	GPIO_ResetBits(GPIOA,GPIO_Pin_11);		break;				// mosfet1 turn-off
+				
+				case	0xB0:	GPIO_SetBits(GPIOA,GPIO_Pin_8);   		break;				// mosfet2 turn-on
+				case	0xBA:	GPIO_ResetBits(GPIOA,GPIO_Pin_8); 		break;				// mosfet2 turn-off
+				
+				case	0xC0:	GPIO_SetBits(GPIOE,GPIO_Pin_2);	    	break;				// mosfet3 turn-on
+				case	0xCA:	GPIO_ResetBits(GPIOE,GPIO_Pin_2);   	break;				// mosfet3 turn-off
+				
+				case	0xD0:	GPIO_SetBits(GPIOE,GPIO_Pin_3);		    break;				// mosfet4 turn-on
+				case	0xDA:	GPIO_ResetBits(GPIOE,GPIO_Pin_3);   	break;				// mosfet4 turn-off
 			
 				case	'V':	AT24CXX_Read(version_addr,datatemp,20);	printf("%s\n", datatemp);		break;				// 软件版本号码查询
 				default : break;

@@ -17,7 +17,7 @@ void LED_Init(void)
  
  GPIO_InitTypeDef  GPIO_InitStructure;
  	
- RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_GPIOB|RCC_APB2Periph_GPIOC|RCC_APB2Periph_GPIOD, ENABLE);	 //使能PA,PD端口时钟
+ RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_GPIOB|RCC_APB2Periph_GPIOC|RCC_APB2Periph_GPIOD|RCC_APB2Periph_GPIOE, ENABLE);	 //使能PA,PD端口时钟
 
  RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	
@@ -34,6 +34,35 @@ void LED_Init(void)
  GPIO_Init(GPIOC, &GPIO_InitStructure);
  GPIO_ResetBits(GPIOC,GPIO_Pin_12);											 // turn off LED0					
 
+ GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable,ENABLE);			//	RELAY1 停车开关1
+ GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+ GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; 		 //推挽输出
+ GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;		 //IO口速度为10MHz
+ GPIO_Init(GPIOB, &GPIO_InitStructure);
+ 
+ GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5;						 // RELAY2 停车开关2
+ GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; 		 //推挽输出
+ GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;		 //IO口速度为10MHz
+ GPIO_Init(GPIOB, &GPIO_InitStructure);
+ 
+ GPIO_ResetBits(GPIOB,GPIO_Pin_4);											 // turn off relay1
+ GPIO_ResetBits(GPIOB,GPIO_Pin_5);											 // turn off relay2
+ 
+ GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_3;						 //mosfet3, mosfet4 控制端口
+ GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; 		 //推挽输出
+ GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;		 //IO口速度为10MHz
+ GPIO_Init(GPIOE, &GPIO_InitStructure);
+ 
+ GPIO_ResetBits(GPIOE,GPIO_Pin_2);											 // turn off mosfet3
+ GPIO_ResetBits(GPIOE,GPIO_Pin_3);											 // turn off mosfet4
+ 
+ GPIO_InitStructure.GPIO_Pin = GPIO_Pin_8 | GPIO_Pin_11;						 //mosfet1, mosfet2 控制端口
+ GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; 		 //推挽输出
+ GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;		 //IO口速度为10MHz
+ GPIO_Init(GPIOA, &GPIO_InitStructure);
+ 
+ GPIO_ResetBits(GPIOA,GPIO_Pin_11);											 // turn off mosfet1
+ GPIO_ResetBits(GPIOA,GPIO_Pin_8);											 // turn off mosfet2
 }
 
 
