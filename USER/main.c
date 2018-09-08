@@ -220,6 +220,8 @@ char Voltage_Current_Protection(void)
 				 GPIO_ResetBits(GPIOA,GPIO_Pin_8); 						// mosfet2 turn-off
 				 GPIO_ResetBits(GPIOE,GPIO_Pin_2);   					// mosfet3 turn-off
 				 GPIO_ResetBits(GPIOE,GPIO_Pin_3);   				  // mosfet4 turn-off
+				 GPIO_ResetBits(GPIOE,GPIO_Pin_1);   					// mosfet5 turn-off
+				 GPIO_ResetBits(GPIOE,GPIO_Pin_4);   				  // mosfet6 turn-off
 			
 			return	0xEE;
 		}				
@@ -248,6 +250,7 @@ void Sci_Cmd_function(void)				//处理串口命令
 		{	
 				case	0xE0: GPIO_SetBits(GPIOB,GPIO_Pin_4);      	break;				// 停车开关 1 动作
 				case	0xEA:	GPIO_ResetBits(GPIOB,GPIO_Pin_4);			break;				// 停车开关 1 复位
+				
 				case	0xF0: GPIO_SetBits(GPIOB,GPIO_Pin_5);     	break;				// 停车开关 2 动作
 				case	0xFA:	GPIO_ResetBits(GPIOB,GPIO_Pin_5);			break;				// 停车开关 2 复位
 				
@@ -262,6 +265,12 @@ void Sci_Cmd_function(void)				//处理串口命令
 				
 				case	0xD0:	GPIO_SetBits(GPIOE,GPIO_Pin_3);		    break;				// mosfet4 turn-on
 				case	0xDA:	GPIO_ResetBits(GPIOE,GPIO_Pin_3);   	break;				// mosfet4 turn-off
+							
+				case	0x80:	GPIO_SetBits(GPIOE,GPIO_Pin_1);	    	break;				// mosfet5 turn-on				//暂时没有焊接
+				case	0x8A:	GPIO_ResetBits(GPIOE,GPIO_Pin_1);   	break;				// mosfet5 turn-off
+				
+				case	0x90:	GPIO_SetBits(GPIOE,GPIO_Pin_4);		    break;				// mosfet6 turn-on				//暂时没有焊接
+				case	0x9A:	GPIO_ResetBits(GPIOE,GPIO_Pin_4);   	break;				// mosfet6 turn-off
 			
 				case	'V':	AT24CXX_Read(version_addr,datatemp,20);	printf("%s\n", datatemp);		break;				// 软件版本号码查询
 				default : break;

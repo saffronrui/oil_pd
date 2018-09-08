@@ -63,6 +63,14 @@ void LED_Init(void)
  
  GPIO_ResetBits(GPIOA,GPIO_Pin_11);											 // turn off mosfet1
  GPIO_ResetBits(GPIOA,GPIO_Pin_8);											 // turn off mosfet2
+ 
+ GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1 | GPIO_Pin_4;						 //mosfet5, mosfet6 控制端口
+ GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP; 		 //推挽输出
+ GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;		 //IO口速度为10MHz
+ GPIO_Init(GPIOE, &GPIO_InitStructure);
+ 
+ GPIO_ResetBits(GPIOE,GPIO_Pin_1);											 // turn off mosfet3
+ GPIO_ResetBits(GPIOE,GPIO_Pin_4);											 // turn off mosfet4
 }
 
 
