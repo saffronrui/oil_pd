@@ -18,6 +18,7 @@
 #include "24cxx.h" 
 #include "myiic.h"
 #include "dma.h"
+#include "pt1000.h"
 
 #define	Is_Debug	0			// Is_Debug == 1时调试模式，输出调试信息
 
@@ -93,9 +94,9 @@ char Voltage_Current_Protection(void);
 // timer1 输出pwm用来测试频率采集，需要时去掉注释即可
 // 需要注意， PA8 输出测试 pwm，此端口与 mosfet 控制端口复用
 
-//	TIM1_PWM_Init(899,99); 			  //不分频。PWM频率=72000/(8999+1)=8Khz, 产生测试pwm
+	TIM1_PWM_Init(899,99); 			  //不分频。PWM频率=72000/(8999+1)=8Khz, 产生测试pwm
 																// 频率测量范围 800~9000
-//	TIM_SetCompare1(TIM1,70);
+	TIM_SetCompare1(TIM1,70);
 //-------------------------------------------------------------------------------//	
 	
 	TIM2_Config();			// TIM2 定时中断设置，250ms 中断
@@ -182,20 +183,23 @@ char Voltage_Current_Protection(void);
 	
 		STM_ADC_DATA_f[0] =  1.51 * adcx[0]  * 3.3 * 10 / 4096;		//电流采样									-->PA7
 		STM_ADC_DATA_f[1] =  adcx[1]*0.048197;										//12电压采样								-->PC0
-		STM_ADC_DATA_f[2] =  adcx[2]  * 3.3 * 10 / 4096;					//24电压采样								-->PC1
-		STM_ADC_DATA_f[3] =  adcx[3]  * 3.3 * 10 / 4096;					//温度1采样									-->PC3
-		STM_ADC_DATA_f[4] =  adcx[4]  * 3.3 * 10 / 4096 ;					//温度2采样									-->PC2
-		STM_ADC_DATA_f[5] =  adcx[5]  * 3.3 * 10 / 4096;					//温度3采样									-->PA0
-		STM_ADC_DATA_f[6] =  adcx[6]  * 3.3 * 10 / 4096 ;					//温度4采样									-->PA1
-		STM_ADC_DATA_f[7] =  adcx[7]  * 3.3 * 10 / 4096;					//备用电压采样1  0-10V			-->PA2
-		STM_ADC_DATA_f[8] =  adcx[8]  * 3.3 * 10 / 4096 ;					//备用电压采样2  0-10V			-->PA3
+		STM_ADC_DATA_f[2] =  adcx[2]*0.2789 - 0.7849 ;						//24电压采样								-->PC1
+
+//		STM_ADC_DATA_f[3] =  adcx[3];														//温度1采样									-->PC3
+		STM_ADC_DATA_f[3] = Get_Temputure(adcx[3], 0);															//温度1采样		
+		STM_ADC_DATA_f[4] = Get_Temputure(adcx[4], 1);															//温度2采样									-->PC2
+		STM_ADC_DATA_f[5] = Get_Temputure(adcx[5], 2);															//温度3采样									-->PA0
+		STM_ADC_DATA_f[6] = Get_Temputure(adcx[6], 3);															//温度4采样									-->PA1
+		
+		STM_ADC_DATA_f[7] =  adcx[7];					//备用电压采样1  0-10V			-->PA2
+		STM_ADC_DATA_f[8] =  adcx[8];					//备用电压采样2  0-10V			-->PA3
 	
 		Fault_sta = Voltage_Current_Protection();			//设备保护并返回相应故障码
 	
 	
 		Tx_data_function();	
 		
-		delay_ms(500);
+		delay_ms(200);
 		IWDG_Feed();				//	喂狗
 	}											    
 }	
@@ -206,16 +210,28 @@ char Voltage_Current_Protection(void)
 
 		if( STM_ADC_DATA_f[0] > 20. ){			//过流保护
 				//关闭所有mosfet通道
+//				 GPIO_ResetBits(GPIOA,GPIO_Pin_11);					  // mosfet1 turn-off
+//				 GPIO_ResetBits(GPIOA,GPIO_Pin_8); 						// mosfet2 turn-off
+//				 GPIO_ResetBits(GPIOE,GPIO_Pin_2);   					// mosfet3 turn-off
+//				 GPIO_ResetBits(GPIOE,GPIO_Pin_3);   				  // mosfet4 turn-off
+//				 GPIO_ResetBits(GPIOE,GPIO_Pin_1);   					// mosfet5 turn-off
+//				 GPIO_ResetBits(GPIOE,GPIO_Pin_4);   				  // mosfet6 turn-off
 				return 0xBB;
 		} 	
 		
-		if( (STM_ADC_DATA_f[2] > 26. ) || (STM_ADC_DATA_f[2] < 18.) ){			// 24V电源高压低压保护
-				//关闭所有moefet通道
+		if( (STM_ADC_DATA_f[2] > 260 ) || (STM_ADC_DATA_f[2] < 180) ){			// 24V电源高压低压保护
+				 //关闭所有moefet通道
+//				 GPIO_ResetBits(GPIOA,GPIO_Pin_11);					  // mosfet1 turn-off
+//				 GPIO_ResetBits(GPIOA,GPIO_Pin_8); 						// mosfet2 turn-off
+//				 GPIO_ResetBits(GPIOE,GPIO_Pin_2);   					// mosfet3 turn-off
+//				 GPIO_ResetBits(GPIOE,GPIO_Pin_3);   				  // mosfet4 turn-off
+//				 GPIO_ResetBits(GPIOE,GPIO_Pin_1);   					// mosfet5 turn-off
+//				 GPIO_ResetBits(GPIOE,GPIO_Pin_4);   				  // mosfet6 turn-off
 				return 0xCC;
 		}
 		
 		if( (STM_ADC_DATA_f[1] > 130 ) || (STM_ADC_DATA_f[1] < 105) ){			// 12V电源高压低压保护
-				 
+				 //关闭所有moefet通道
 				 GPIO_ResetBits(GPIOA,GPIO_Pin_11);					  // mosfet1 turn-off
 				 GPIO_ResetBits(GPIOA,GPIO_Pin_8); 						// mosfet2 turn-off
 				 GPIO_ResetBits(GPIOE,GPIO_Pin_2);   					// mosfet3 turn-off
@@ -223,7 +239,7 @@ char Voltage_Current_Protection(void)
 				 GPIO_ResetBits(GPIOE,GPIO_Pin_1);   					// mosfet5 turn-off
 				 GPIO_ResetBits(GPIOE,GPIO_Pin_4);   				  // mosfet6 turn-off
 			
-			return	0xEE;
+			return	0xAF;
 		}				
 		
 		return 0x00;  // 能执行到这一步表示上面错误没有出现，否则函数已经返回
@@ -280,35 +296,48 @@ void Sci_Cmd_function(void)				//处理串口命令
 
 void Tx_data_function(void)
 {
+		u8	frame_cnt;
+		u16 freq1, freq2;
 #if !Is_Debug 																		// 是否为调试模式
 		
-		Tx_Buf[0]  = 0xEE;														// 帧头
-		Tx_Buf[1]  = 'P';															// 标志位
-		Tx_Buf[2]  = Tx_Len;													// 数组长度
-		Tx_Buf[3]  = STM_ADC_DATA_f[0];											
-		Tx_Buf[4]  = STM_ADC_DATA_f[1];
-		Tx_Buf[5]  = STM_ADC_DATA_f[2];
-		Tx_Buf[6]  = STM_ADC_DATA_f[3];
-		Tx_Buf[7]  = STM_ADC_DATA_f[4];
-		Tx_Buf[8]  = STM_ADC_DATA_f[5];
-		Tx_Buf[9]  = STM_ADC_DATA_f[6];
-		Tx_Buf[10] = STM_ADC_DATA_f[7];
-		Tx_Buf[11] = STM_ADC_DATA_f[8];
+		frame_cnt = 0;
+	
+		Tx_Buf[frame_cnt++]  = 0xEE;														// 帧头
+		Tx_Buf[frame_cnt++]  = 'P';															// 标志位
+		Tx_Buf[frame_cnt++]  = Tx_Len;													// 数组长度
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[0];								// 电流采集							
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[1];								// 12V 电压采集
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[2] >> 8;						// 24V 电压采集高字节
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[2];								// 24V 电压采集低字节
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[3] >> 8;						// 温度采集1高字节
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[3];								// 温度采集1低字节
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[4] >> 8;						// 温度采集2高字节
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[4];								// 温度采集2低字节
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[5] >> 8;						// 温度采集3高字节
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[5];								// 温度采集3低字节
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[6] >> 8;						// 温度采集4高字节
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[6];								// 温度采集4低字节
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[7] >> 8;						// 备用AD通道1高字节
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[7];								// 备用AD通道1低字节
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[8] >> 8;						// 备用AD通道2高字节
+		Tx_Buf[frame_cnt++]  = (u16)STM_ADC_DATA_f[8];								// 备用AD通道2低字节
 		
-		Timer3_freq1 *= 4.0020;												//	转速系数调整，标准系数为 250ms 一次中断， *4，最好避免在中断函数内做运算
-		Timer4_freq2 *= 4.0020;												//	转速系数调整，标准系数为 250ms 一次中断， *4
+		freq1 = Timer3_freq1 * 4.0020;		//	转速系数调整，标准系数为 250ms 一次中断， *4，最好避免在中断函数内做运算
+		freq2 = Timer4_freq2 * 4.0020;
+		
 				
-		if(Timer3_freq1 < 50)													// 转速小于 50 rmp 不显示转速								
-				Timer3_freq1 = 0;
-		if(Timer4_freq2 < 50)
-				Timer4_freq2 = 0;
+		if(freq1 < 50)													// 转速小于 50 rmp 不显示转速								
+				freq1 = 0;
+		if(freq2 < 50)
+				freq2 = 0;
 		
-		Tx_Buf[12] = Timer3_freq1 >> 8;
-		Tx_Buf[13] = Timer3_freq1;
-		Tx_Buf[14] = Timer4_freq2 >> 8;
-		Tx_Buf[15] = Timer4_freq2;	
+		Tx_Buf[frame_cnt++] = freq1 >> 8;
+		Tx_Buf[frame_cnt++] = freq1;
+		Tx_Buf[frame_cnt++] = freq2 >> 8;
+		Tx_Buf[frame_cnt++] = freq2;	
 									
-		Tx_Buf[19] = crc_calc(Tx_Buf, Tx_Len);							//	CRC验证码计算
+		Tx_Buf[Tx_Len-3] = Fault_sta;															//	故障状态显示, 0XAF 表示没有故障
+		Tx_Buf[Tx_Len-1] = crc_calc(Tx_Buf, Tx_Len);							//	CRC验证码计算
 	
 #endif
 }

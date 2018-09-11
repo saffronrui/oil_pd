@@ -10,7 +10,7 @@
 #define EN_USART1_RX 			1		//使能（1）/禁止（0）串口1接收
 #define	CMD_BUF_LEN				3
 
-#define	Tx_Len			20  //发送数组
+#define	Tx_Len			30  //发送数组
 
 
 extern u8  USART_RX_BUF[USART_REC_LEN]; //接收缓冲,最大USART_REC_LEN个字节.末字节为换行符 

@@ -9,5 +9,6 @@
 
 #define	PT1000_TABLE_NUM	7
 
- 
+u16 Get_Temputure(u16 ad_sample, u8 T_ch);
+
 #endif
